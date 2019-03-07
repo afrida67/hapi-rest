@@ -1,0 +1,19 @@
+{
+  "name": "hapi pratice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "afrida",
+  "license": "ISC",
+  "dependencies": {
+    "hapi": "^18.1.0",
+    "joi": "^14.3.1",
+    "mongoose": "^5.4.17",
+    "mysql": "^2.16.0",
+    "nodemon": "^1.18.10"
+  }
+}
