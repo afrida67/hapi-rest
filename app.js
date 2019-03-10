@@ -35,16 +35,16 @@ const init = async () => {
 
     //home route
     server.route({
-        path: '/',
         method: 'GET',
+        path: '/',
         handler: {
             view: 'index.html'
         }
     });
     // add student
     server.route({
-        path: '/student',
         method: 'POST',
+        path: '/student',
         options: {
             validate: {
                 payload: {
@@ -64,6 +64,22 @@ const init = async () => {
                 return h.response(result);
             } catch(err){
                 return h.response(err).code(500);
+            }
+        }
+    });
+    //list
+
+    server.route({
+        method: 'GET',
+        path: '/list',
+        handler: async (request, h) => {
+            try {
+                let student = await StudentModel.find().exec();
+                return h.view('list',{
+                    student: student 
+                });
+            } catch (error) {
+                return h.response(error).code(500);
             }
         }
     });
