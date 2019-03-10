@@ -1,10 +1,16 @@
 const hapi = require('hapi'); 
 const path = require('path');
+
 const vision = require('vision');
 const handlebars = require('handlebars');
+
 const mongoose = require('mongoose');
+
 const joi = require('joi');
 const auth = require('hapi-auth-basic');
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 //user authentication
 
@@ -28,7 +34,8 @@ mongoose.connect('mongodb://localhost:27017/studentdb', { useNewUrlParser: true 
 const StudentModel = mongoose.model('Student', {
     username: String,
     name: String,
-    email: String
+    email: String,
+    password: String
 });
 
 const server = hapi.server({
@@ -76,7 +83,8 @@ const init = async () => {
                 payload: {
                     username: joi.string().alphanum().min(3).max(7).required(),
                     name: joi.string().required(),
-                    email: joi.string().email({ minDomainAtoms: 2 })
+                    email: joi.string().email({ minDomainAtoms: 2 }),
+                    password: joi.string().regex(/^[a-zA-Z0-9]{3,30}$/)
                 },
                 failAction: (request, h, err) => {
                     return err.isJoi ? h.response(err.details[0]).takeover() : h.response(err).takeover();
@@ -85,9 +93,12 @@ const init = async () => {
         },
         handler: async (request, h) => {
             try {
-                let student = new StudentModel(request.payload); //req body on hapi
-                let result = await student.save();
-                return h.response(result);
+                  let salt = bcrypt.genSaltSync(saltRounds);
+                  request.payload.password = bcrypt.hashSync(request.payload.password, salt);
+                  
+                  let student = new StudentModel(request.payload); //req body on hapi
+                  let result = await student.save();
+                  return h.response(result);
             } catch(err){
                 return h.response(err).code(500);
             }
