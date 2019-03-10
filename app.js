@@ -4,6 +4,20 @@ const vision = require('vision');
 const handlebars = require('handlebars');
 const mongoose = require('mongoose');
 const joi = require('joi');
+const auth = require('hapi-auth-basic');
+
+//user authentication
+
+const user = {
+    name: 'aesha',
+    password: '1234'
+};
+
+const validate = async (request, username, password, h) => {
+    let isValid = username === user.name && password === user.password;
+
+    return { isValid: isValid, credentials: {name: user.name} };
+};
 
 mongoose.connect('mongodb://localhost:27017/studentdb', { useNewUrlParser: true }, (err) => {
     if (!err) { console.log('MongoDB Connection Succeeded.') }
@@ -24,6 +38,18 @@ const server = hapi.server({
 
 const init = async () => {
 
+    await server.register(auth);
+    server.auth.strategy('simple', 'basic', {validate });
+    server.auth.default('simple');
+    
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler: async (request, h) => {
+            return h.view('index');
+        }
+    });
+
     await server.register(vision);
 
     server.views({
@@ -36,7 +62,7 @@ const init = async () => {
     //home route
     server.route({
         method: 'GET',
-        path: '/',
+        path: '/logged',
         handler: {
             view: 'index.html'
         }
@@ -52,14 +78,14 @@ const init = async () => {
                     name: joi.string().required(),
                     email: joi.string().email({ minDomainAtoms: 2 })
                 },
-                failAction: (req, h, err) => {
+                failAction: (request, h, err) => {
                     return err.isJoi ? h.response(err.details[0]).takeover() : h.response(err).takeover();
                 }
             }
         },
-        handler: async (req, h) => {
+        handler: async (request, h) => {
             try {
-                let student = new StudentModel(req.payload); //req body on hapi
+                let student = new StudentModel(request.payload); //req body on hapi
                 let result = await student.save();
                 return h.response(result);
             } catch(err){
@@ -67,8 +93,8 @@ const init = async () => {
             }
         }
     });
-    //list
 
+    //list
     server.route({
         method: 'GET',
         path: '/list',

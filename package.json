@@ -12,6 +12,7 @@
   "dependencies": {
     "handlebars": "^4.1.0",
     "hapi": "^18.1.0",
+    "hapi-auth-basic": "^5.0.0",
     "joi": "^14.3.1",
     "mongoose": "^5.4.18",
     "nodemon": "^1.18.10",
