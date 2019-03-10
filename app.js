@@ -45,6 +45,18 @@ const init = async () => {
     server.route({
         path: '/student',
         method: 'POST',
+        options: {
+            validate: {
+                payload: {
+                    username: joi.string().alphanum().min(3).max(7).required(),
+                    name: joi.string().required(),
+                    email: joi.string().email({ minDomainAtoms: 2 })
+                },
+                failAction: (req, h, err) => {
+                    return err.isJoi ? h.response(err.details[0]).takeover() : h.response(err).takeover();
+                }
+            }
+        },
         handler: async (req, h) => {
             try {
                 let student = new StudentModel(req.payload); //req body on hapi
