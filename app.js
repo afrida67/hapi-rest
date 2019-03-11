@@ -25,15 +25,20 @@ const StudentModel = mongoose.model('Student', {
 });
 
 //user authentication
-const user = {
-    name: 'aesha',
-    password: '1234'
-};
-
 const validate = async (request, username, password, h) => {
-    let isValid = username === user.name && password === user.password;
 
-    return { isValid: isValid, credentials: {name: user.name} };
+    const user = await StudentModel.findOne({username, password}).exec(); 
+
+    let isValid = username === user.username && password === user.password;
+
+    if(!user) return {isValid: false};
+
+        return { 
+            isValid: isValid, 
+            credentials: {
+                name: user.name
+            } 
+        };
 };
 
 const server = hapi.server({
@@ -43,15 +48,20 @@ const server = hapi.server({
 
 const init = async () => {
 
+try {
     await server.register(auth);
-    server.auth.strategy('simple', 'basic', {validate });
+    server.auth.strategy('simple', 'basic', {validate});
     server.auth.default('simple');
     
     server.route({
         method: 'GET',
-        path: '/login',
+        path: '/',
         handler: async (request, h) => {
-            return h.view('index');
+            try {
+                return h.view('index');
+            } catch (err) {
+                return h.response(err).code(500);
+            }
         }
     });
 
@@ -106,7 +116,7 @@ const init = async () => {
     //list
     server.route({
         method: 'GET',
-        path: '/list',
+        path: '/stuList',
         handler: async (request, h) => {
             try {
                 let student = await StudentModel.find().exec();
@@ -119,24 +129,24 @@ const init = async () => {
         }
     });
 
-    //remove
+    //logout
     server.route({
         method: 'GET',
-        path: '/list',
+        path: '/logout',
         handler: async (request, h) => {
             try {
-                let student = await StudentModel.find().exec();
-                return h.view('list',{
-                    student: student 
-                });
+                return h.view('test');
             } catch (error) {
                 return h.response(error).code(500);
             }
         }
-    })
+    });
 
     await server.start();
     console.log('Server running at:', server.info.uri);
-}
+    } catch (err) {
+        console.log(err);
+    }
+};
 
 init();

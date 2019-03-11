@@ -1,19 +1,19 @@
-<h2>Studnet App</h2>
+<h2>Student App</h2>
 
 <form method="POST" action="/student">
         <div class="form-group">
 
-          <label for="name">Username</label>
+          <label for="username">Username</label>
           <input type="text" name="username" required >
           <br>
           <label for="name">Name</label>
           <input type="text" name="name" required >
           <br>
-          <label for="name">Email</label>
+          <label for="email">Email</label>
           <input type="text" name="email" required >
           <br>
-          <label for="name">Password</label>
-          <input type="text" name="password" required >
+          <label for="password">Password</label>
+          <input type="password" name="password" required >
           <br>
 
           <input class="button" type="submit" value="Add Student" >
@@ -21,7 +21,7 @@
 </form>
 
 <h2>Logout</h2>
-<p><a href="#">Logout</a></p>
+<p><a href="/logout">Logout</a></p>
 
 <h2>Student List</h2>
-<p><a href="/list">List</a></p>
+<p><a href="/stuList">List</a></p>
