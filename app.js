@@ -27,19 +27,13 @@ const StudentModel = mongoose.model('Student', {
 //user authentication
 const validate = async (request, username, password, h) => {
 
-    const user = await StudentModel.findOne({username, password}).exec(); 
-    
+    const user = await StudentModel.findOne({ username }).exec(); 
+    if(!user) return { isValid: false };
 
-    let isValid = username === user.username && password === user.password;
-
-    if(!user) return {isValid: false};
-
-        return { 
-            isValid: isValid, 
-            credentials: {
-                name: user.name
-            } 
-        };
+    const isValid = await bcrypt.compareSync(password, user.password);
+    const credentials = { name: user.name };
+ 
+    return { isValid, credentials };
 };
 
 const server = hapi.server({
