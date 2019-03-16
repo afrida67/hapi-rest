@@ -1,62 +1,70 @@
 'use strict';
-
-const hapi = require('hapi'); 
+const hapi = require('hapi');
 const path = require('path');
 const vision = require('vision');
 const handlebars = require('handlebars');
+const cookieAuth = require('hapi-auth-cookie');
 const mongoose = require('mongoose');
-const auth = require('hapi-auth-basic');
-const bcrypt = require('bcrypt');
-
-const StudentModel = require('./models/studentSchema');
 const routes = require('./routes/student');
 
-//coonnect to db
+const server = hapi.server({
+    host: 'localhost',
+    port: Number(process.argv[2] || 3000)
+});
+
 mongoose.connect('mongodb://localhost:27017/studentdb', { useNewUrlParser: true }, (err) => {
     if (!err) { console.log('MongoDB Connection Succeeded.') }
     else { console.log(`Error in DB connection : ${err}`)}
 });
 
-//user authentication
-const validate = async (request, username, password, h) => {
-
-    const user = await StudentModel.findOne({ username }).exec(); 
-    if(!user) return { isValid: false };
-
-    const isValid = await bcrypt.compareSync(password, user.password);
-    const credentials = { name: user.name };
- 
-    return { isValid, credentials };
-};
-
-const server = hapi.server({
-    host: 'localhost',
-    port: Number(process.argv[2] || 3002)
-});
-
 const init = async () => {
 
-try {
+    try {
+        await server.register(cookieAuth);
+        await server.register(vision);
+    
+        const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 });
+        server.app.cache = cache;
+    
+        server.auth.strategy('session', 'cookie', {
+            password: 'password-should-be-32-characters',
+            cookie: 'sid-example',
+            redirectTo: '/login',
+            isSecure: false,
+            validateFunc: async (request, session) => {
+    
+                const cached = await cache.get(session.sid);
+                const out = {
+                    valid: !!cached
+                };
+    
+                if (out.valid) {
+                    out.credentials = cached.account;
+                }
+    
+                return out;
+            }
+            
+        });
+    
+        server.auth.default('session');
+    
+        server.views({
+            engines: {
+                html: handlebars
+            },
+            path: path.join(__dirname, 'views')
+        });
 
-    server.route(routes);
-    await server.register(auth);
-    await server.register(vision);
-
-    server.auth.strategy('simple', 'basic', {validate});
-    server.auth.default('simple');
-
-    server.views({
-        engines: {
-            html: handlebars
-        },
-        path: path.join(__dirname, 'views')
-    });
-
-    await server.start();
-    console.log('Server running at:', server.info.uri);
-    } catch (err) {
-        console.log(err);
-    }
-};
-
+        server.route(routes)
+        await server.start();
+    
+        console.log(`Server started at: ${server.info.uri}`);
+        } catch (err) {
+            console.error(err.stack);
+            process.exit(1);
+        }
+    };
+    
 init();
+

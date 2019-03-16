@@ -1,12 +1,10 @@
-<h1>Students</h1>
+<tbody>
+{{#each user}}
+<tr>
+     <td>{{this.username}}</td>
+    <td>{{this.name}}</td>
+    <br>
+</tr>
+{{/each}}
 
-    <tbody>
-    {{#each student}}
-        <tr>
-             <td>{{this.username}}</td>
-            <td>{{this.name}}</td>
-            <td>{{this.email}}</td>
-            <br>
-        </tr>
-    {{/each}}
 </tbody>

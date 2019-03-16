@@ -1,0 +1,23 @@
+<html>
+<head>
+<title>Login page</title>
+</head>
+<body>
+    <h3>Welcome {{username}} </h3><br/>
+    <p> List of the students</p>
+        <tbody>
+        {{#each student}}
+        <tr>
+            <td>{{this.username}}</td>
+            <td>{{this.name}}</td>
+            <br>
+        </tr>
+        {{/each}}
+        </tbody>
+
+        <form method="get" action="/logout">
+            <input type="submit" value="Logout">
+        </form>
+    </body>
+</html>
+

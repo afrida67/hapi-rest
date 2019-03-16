@@ -13,9 +13,8 @@
     "bcrypt": "^3.0.4",
     "handlebars": "^4.1.0",
     "hapi": "^18.1.0",
-    "hapi-auth-basic": "^5.0.0",
-    "joi": "^14.3.1",
-    "mongoose": "^5.4.18",
+    "hapi-auth-cookie": "^9.1.0",
+    "mongoose": "^5.4.19",
     "nodemon": "^1.18.10",
     "vision": "^5.4.4"
   }
