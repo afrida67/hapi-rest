@@ -1,8 +1,3 @@
-## Hapi.js CRUD
+## Hapi.js
 
-**Features**:
-
-> user authentication check
-> register
-> login
-> validation
+A student database using **hapi.js** and **Mongodb** with the feature of CRUD and user authentication & session.

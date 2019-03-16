@@ -3,56 +3,59 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const joi = require('joi');
-
-const StudentModel = require('../models/studentSchema');
 const internals = {
     uuid: 1             // Use seq instead of proper unique identifiers for demo only
 };
+
+const StudentModel = require('../models/studentSchema');
 
 module.exports = [
     { 
         method: ['GET', 'POST'],
         path: '/login', 
         config: {
-          handler:async function (request, h){
+          handler: async (request, h) => {
 
-            if (request.auth.isAuthenticated) {
-                return h.redirect('/');
-            }
-
-            let message = 'Invalid username or password';
-            let account = null;
-        
-            if (request.method === 'post') {
-
-                    const username = request.payload.username;
-                    const password = request.payload.password;
-                    const users = await StudentModel.findOne({ username }).exec(); 
-
-                    if(!users) {
-                        return h.view('home', { message });
+                try {
+                    if (request.auth.isAuthenticated) {
+                        return h.redirect('/');
                     }
-
-                    const isValid = await bcrypt.compareSync(password, users.password);
-
-                   if (users && !isValid) {
-                        return h.view('home', { message });
+        
+                    let message = 'Invalid username or password';
+                    let account = null;
+                
+                    if (request.method === 'post') {
+        
+                            const username = request.payload.username;
+                            const password = request.payload.password;
+                            const users = await StudentModel.findOne({ username }).exec(); 
+        
+                            if(!users) {
+                                return h.view('home', { message });
+                            }
+        
+                            const isValid = await bcrypt.compareSync(password, users.password);
+        
+                           if (users && !isValid) {
+                                return h.view('home', { message });
+                            }
+                            
+                            console.log(`users:  ${users.username}`);
+                 
                     }
-                    
-                    console.log(`users:  ${users.username}`);
-         
-            }
+                    if (request.method === 'get'){
+                            return h.view('home');
+                    }
+                
+                    const sid = String(++internals.uuid);
+                
+                    await request.server.app.cache.set(sid, { account }, 0);
+                    request.cookieAuth.set({ sid });
+                    return h.redirect('/');
 
-            if (request.method === 'get'){
-                    return h.view('home');
-            }
-        
-            const sid = String(++internals.uuid);
-        
-            await request.server.app.cache.set(sid, { account }, 0);
-            request.cookieAuth.set({ sid });
-        
-            return h.redirect('/');
+                } catch(err){
+                    return h.response(err).code(500);
+                }
           },
            auth: { 
                mode: 'try'
@@ -62,14 +65,20 @@ module.exports = [
              } 
         }
      },
+     //logout 
     { 
         method: 'GET', 
         path: '/logout', 
         config: { 
             handler: async (request, h) => {
-                request.server.app.cache.drop(request.state['sid-example'].sid);
-                request.cookieAuth.clear();
-                return h.redirect('/');
+                try {
+                    request.server.app.cache.drop(request.state['sid-example'].sid);
+                    request.cookieAuth.clear();
+                    return h.redirect('/');
+
+                } catch(err){
+                    return h.response(err).code(500);
+                }
             }
          }
     },
@@ -82,12 +91,15 @@ module.exports = [
             handler: async (request, h) => {
               //  let name = request.auth.credentials.username;
               //  return h.view('welcome', {name}); 
-
-                let student = await StudentModel.find().exec();
-                return h.view('welcome',{
-                    student: student 
-                });
-         } 
+                    try {
+                        let student = await StudentModel.find().exec();
+                        return h.view('welcome',{
+                            student: student 
+                        });
+                    } catch(err){
+                        return h.response(err).code(500);
+               }
+           } 
         }
     }, 
     //student register page 
