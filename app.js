@@ -5,11 +5,13 @@ const vision = require('vision');
 const handlebars = require('handlebars');
 const cookieAuth = require('hapi-auth-cookie');
 const mongoose = require('mongoose');
+const inert = require('inert');  
+
 const routes = require('./routes/student');
 
 const server = hapi.server({
     host: 'localhost',
-    port: Number(process.argv[2] || 3000)
+    port: Number(process.argv[2] || 3000),
 });
 
 mongoose.connect('mongodb://localhost:27017/studentdb', { useNewUrlParser: true }, (err) => {
@@ -22,6 +24,7 @@ const init = async () => {
     try {
         await server.register(cookieAuth);
         await server.register(vision);
+        await server.register(inert);
     
         const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 });
         server.app.cache = cache;
@@ -54,9 +57,25 @@ const init = async () => {
                 html: handlebars
             },
             path: path.join(__dirname, 'views')
-        });
 
-        server.route(routes)
+        });
+        server.route({
+            method: 'GET',
+            path: '/public/{param*}',
+            config : {
+                auth : {
+                    strategy : 'session',
+                    mode     : 'optional'
+                }
+            },
+            handler: {
+                directory: {
+                    path: path.join(__dirname, 'public')
+                }
+            }
+     });
+
+        server.route(routes);
         await server.start();
     
         console.log(`Server started at: ${server.info.uri}`);

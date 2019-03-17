@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const joi = require('joi');
+const path = require('path');
 const internals = {
     uuid: 1             // Use seq instead of proper unique identifiers for demo only
 };
@@ -10,6 +11,7 @@ const internals = {
 const StudentModel = require('../models/studentSchema');
 
 module.exports = [
+    //login
     { 
         method: ['GET', 'POST'],
         path: '/login', 

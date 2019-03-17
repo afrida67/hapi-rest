@@ -14,6 +14,7 @@
     "handlebars": "^4.1.0",
     "hapi": "^18.1.0",
     "hapi-auth-cookie": "^9.1.0",
+    "inert": "^5.1.2",
     "mongoose": "^5.4.19",
     "nodemon": "^1.18.10",
     "vision": "^5.4.4"
