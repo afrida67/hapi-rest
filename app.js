@@ -59,22 +59,6 @@ const init = async () => {
             path: path.join(__dirname, 'views')
 
         });
-        server.route({
-            method: 'GET',
-            path: '/public/{param*}',
-            config : {
-                auth : {
-                    strategy : 'session',
-                    mode     : 'optional'
-                }
-            },
-            handler: {
-                directory: {
-                    path: path.join(__dirname, 'public')
-                }
-            }
-     });
-
         server.route(routes);
         await server.start();
     

@@ -5,12 +5,28 @@ const saltRounds = 10;
 const joi = require('joi');
 const path = require('path');
 const internals = {
-    uuid: 1             // Use seq instead of proper unique identifiers for demo only
+    uuid: 1  
 };
 
 const StudentModel = require('../models/studentSchema');
 
 module.exports = [
+    //public file routes
+    {
+        method: 'GET',
+        path: '/public/{param*}',
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'optional'
+            }
+        },
+        handler: {
+            directory: {
+                path: path.join(__dirname, '../public')
+            }
+        }
+    },
     //login
     { 
         method: ['GET', 'POST'],
@@ -30,19 +46,19 @@ module.exports = [
         
                             const username = request.payload.username;
                             const password = request.payload.password;
-                            const users = await StudentModel.findOne({ username }).exec(); 
+                            const student = await StudentModel.findOne({ username }).exec(); 
         
-                            if(!users) {
+                            if(!student) {
                                 return h.view('home', { message });
                             }
         
-                            const isValid = await bcrypt.compareSync(password, users.password);
+                            const isValid = await bcrypt.compareSync(password, student.password);
         
-                           if (users && !isValid) {
+                           if (student && !isValid) {
                                 return h.view('home', { message });
                             }
                             
-                            console.log(`users:  ${users.username}`);
+                            console.log(`users:  ${student.username}`);
                  
                     }
                     if (request.method === 'get'){
@@ -148,8 +164,8 @@ module.exports = [
                 let salt = bcrypt.genSaltSync(saltRounds);
                 request.payload.password = bcrypt.hashSync(request.payload.password, salt);
 
-                let user = new StudentModel(request.payload); //req body on hapi
-                let result = await user.save();
+                let student = new StudentModel(request.payload); //req body on hapi
+                let result = await student.save();
                 return h.response(result);
           } catch(err){
               return h.response(err).code(500);
