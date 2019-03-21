@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const inert = require('inert');  
 
 const routes = require('./routes/student');
+const User = require('./models/studentSchema');
 
 const server = hapi.server({
     host: 'localhost',
@@ -22,36 +23,35 @@ mongoose.connect('mongodb://localhost:27017/studentdb', { useNewUrlParser: true 
 const init = async () => {
 
     try {
-        await server.register(cookieAuth);
+        await server.register(require('hapi-auth-cookie'));
         await server.register(vision);
         await server.register(inert);
     
-        const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 });
-        server.app.cache = cache;
-    
+
         server.auth.strategy('session', 'cookie', {
-            password: 'password-should-be-32-characters',
-            cookie: 'sid-example',
+
+            cookie: {
+                name: 'sid-example',
+                password: 'password1should2beZ32Wcharacters',
+                isSecure: false
+            },
+
             redirectTo: '/login',
-            isSecure: false,
+    
             validateFunc: async (request, session) => {
+                const account = await User.find({ _id: session.id });
+                console.log(`acdount: ${account}`);
     
-                const cached = await cache.get(session.sid);
-                const out = {
-                    valid: !!cached
-                };
-    
-                if (out.valid) {
-                    out.credentials = cached.account;
+                if (!account) {
+                    // Must return { valid: false } for invalid cookies
+                    return { valid: false };
                 }
-    
-                return out;
+                return { valid: true, credentials: account };
             }
-            
         });
     
         server.auth.default('session');
-    
+      
         server.views({
             engines: {
                 html: handlebars
